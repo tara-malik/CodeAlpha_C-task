@@ -1,0 +1,88 @@
+#include <iostream>
+#include <thread>
+#include <chrono>
+
+using namespace std;
+
+class TrafficLight {
+public:
+  TrafficLight(int id, int redDuration, int greenDuration, int yellowDuration) {
+    this->id = id;
+    this->redDuration = redDuration;
+    this->greenDuration = greenDuration;
+    this->yellowDuration = yellowDuration;
+    this->state = TrafficLightState::RED;
+  }
+
+  void changeState(TrafficLightState newState) {
+    this->state = newState;
+  }
+
+  TrafficLightState getState() {
+    return this->state;
+  }
+
+private:
+  int id;
+  int redDuration;
+  int greenDuration;
+  int yellowDuration;
+  TrafficLightState state;
+};
+
+enum class TrafficLightState {
+  RED,
+  YELLOW,
+  GREEN
+};
+
+class TrafficManagementSystem {
+public:
+  TrafficManagementSystem(vector<TrafficLight>& trafficLights) {
+    this->trafficLights = trafficLights;
+  }
+
+  void start() {
+    thread th([this]() {
+      while (true) {
+        for (TrafficLight& trafficLight : this->trafficLights) {
+          switch (trafficLight.getState()) {
+            case TrafficLightState::RED:
+              trafficLight.changeState(TrafficLightState::GREEN);
+              this_thread::sleep_for(chrono::seconds(trafficLight.greenDuration));
+              break;
+            case TrafficLightState::GREEN:
+              trafficLight.changeState(TrafficLightState::YELLOW);
+              this_thread::sleep_for(chrono::seconds(trafficLight.yellowDuration));
+              break;
+            case TrafficLightState::YELLOW:
+              trafficLight.changeState(TrafficLightState::RED);
+              this_thread::sleep_for(chrono::seconds(trafficLight.redDuration));
+              break;
+          }
+        }
+      }
+    });
+    th.detach();
+  }
+
+private:
+  vector<TrafficLight> trafficLights;
+};
+
+int main() {
+  vector<TrafficLight> trafficLights = {
+    TrafficLight(1, 5, 10, 2),
+    TrafficLight(2, 5, 10, 2),
+    TrafficLight(3, 5, 10, 2)
+  };
+
+  TrafficManagementSystem trafficManagementSystem(trafficLights);
+  trafficManagementSystem.start();
+
+  while (true) {
+    // ...
+  }
+
+  return 0;
+}
