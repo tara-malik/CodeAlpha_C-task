@@ -1,0 +1,87 @@
+#include <iostream>
+#include <sqlite3.h>
+
+using namespace std;
+
+// Database connection
+sqlite3* db;
+
+// Structure to store product information
+struct Product {
+  int id;
+  string name;
+  string description;
+  double price;
+  int quantity;
+};
+
+// Function to open the database
+void openDatabase() {
+  sqlite3_open("stock_management_system.db", &db);
+  if (db == NULL) {
+    cout << "Error opening database: " << sqlite3_errmsg(db) << endl;
+    exit(1);
+  }
+}
+
+// Function to close the database
+void closeDatabase() {
+  sqlite3_close(db);
+}
+
+// Function to create the product table if it doesn't exist
+void createProductTable() {
+  string sql = "CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, description TEXT, price REAL NOT NULL, quantity INTEGER NOT NULL)";
+  sqlite3_stmt* stmt;
+  if (sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
+    cout << "Error creating product table: " << sqlite3_errmsg(db) << endl;
+    exit(1);
+  }
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
+}
+
+// Function to insert a new product into the database
+void insertProduct(Product product) {
+  string sql = "INSERT INTO products (name, description, price, quantity) VALUES (?, ?, ?, ?)";
+  sqlite3_stmt* stmt;
+  if (sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
+    cout << "Error inserting product into database: " << sqlite3_errmsg(db) << endl;
+    exit(1);
+  }
+  sqlite3_bind_text(stmt, 1, product.name.c_str(), product.name.length(), SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 2, product.description.c_str(), product.description.length(), SQLITE_TRANSIENT);
+  sqlite3_bind_double(stmt, 3, product.price);
+  sqlite3_bind_int(stmt, 4, product.quantity);
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
+}
+
+// Function to update an existing product in the database
+void updateProduct(Product product) {
+  string sql = "UPDATE products SET name = ?, description = ?, price = ?, quantity = ? WHERE id = ?";
+  sqlite3_stmt* stmt;
+  if (sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
+    cout << "Error updating product in database: " << sqlite3_errmsg(db) << endl;
+    exit(1);
+  }
+  sqlite3_bind_text(stmt, 1, product.name.c_str(), product.name.length(), SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 2, product.description.c_str(), product.description.length(), SQLITE_TRANSIENT);
+  sqlite3_bind_double(stmt, 3, product.price);
+  sqlite3_bind_int(stmt, 4, product.quantity);
+  sqlite3_bind_int(stmt, 5, product.id);
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
+}
+
+// Function to delete a product from the database
+void deleteProduct(int id) {
+  string sql = "DELETE FROM products WHERE id = ?";
+  sqlite3_stmt* stmt;
+  if (sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
+    cout << "Error deleting product from database: " << sqlite3_errmsg(db) << endl;
+    exit(1);
+  }
+  sqlite3_bind_int(stmt, 1, id);
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
