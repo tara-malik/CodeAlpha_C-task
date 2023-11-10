@@ -1,0 +1,131 @@
+#include <iostream>
+#include <conio.h>
+
+using namespace std;
+
+class Snake {
+public:
+  Snake() {
+    this->headX = 0;
+    this->headY = 0;
+    this->tailX = 0;
+    this->tailY = 0;
+    this->length = 1;
+  }
+
+  void move() {
+    this->tailX = this->headX;
+    this->tailY = this->headY;
+
+    switch (this->direction) {
+      case Direction::UP:
+        this->headY--;
+        break;
+      case Direction::DOWN:
+        this->headY++;
+        break;
+      case Direction::LEFT:
+        this->headX--;
+        break;
+      case Direction::RIGHT:
+        this->headX++;
+        break;
+    }
+
+    if (this->headX < 0 || this->headY < 0 || this->headX >= BOARD_WIDTH || this->headY >= BOARD_HEIGHT) {
+      this->die();
+    }
+
+    if (this->headX == this->tailX && this->headY == this->tailY) {
+      this->die();
+    }
+  }
+
+  void eatFood() {
+    this->length++;
+  }
+
+  void die() {
+    // ...
+  }
+
+private:
+  int headX;
+  int headY;
+  int tailX;
+  int tailY;
+  int length;
+  enum Direction {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+  };
+  Direction direction;
+};
+
+class Board {
+public:
+  Board() {
+    for (int i = 0; i < BOARD_WIDTH; i++) {
+      for (int j = 0; j < BOARD_HEIGHT; j++) {
+        this->board[i][j] = Empty;
+      }
+    }
+  }
+
+  void draw() {
+    // ...
+  }
+
+private:
+  enum Cell {
+    Empty,
+    Snake,
+    Food
+  };
+  Cell board[BOARD_WIDTH][BOARD_HEIGHT];
+};
+
+int main() {
+  Snake snake;
+  Board board;
+
+  while (true) {
+    // Handle keyboard input
+    switch (_getch()) {
+      case 'w':
+        snake.direction = Snake::Direction::UP;
+        break;
+      case 'a':
+        snake.direction = Snake::Direction::LEFT;
+        break;
+      case 's':
+        snake.direction = Snake::Direction::DOWN;
+        break;
+      case 'd':
+        snake.direction = Snake::Direction::RIGHT;
+        break;
+    }
+
+    // Move the snake
+    snake.move();
+
+    // Draw the board
+    board.draw();
+
+    // Check if the snake has eaten food
+    if (snake.headX == foodX && snake.headY == foodY) {
+      snake.eatFood();
+    }
+
+    // Check if the snake has died
+    if (snake.isDead()) {
+      break;
+    }
+  }
+
+  // ...
+
+  return 0;
+}
